@@ -1,0 +1,135 @@
+<!-- Option 3: Top Bar Layout -->
+<!-- Replace the main content section with this: -->
+
+<!-- Donation Impact Bar at Top -->
+<div class="donation-top-bar py-2">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <h6 class="fs-6 fw-bold text-primary mb-2">
+                    <i class="fas fa-gift me-1"></i>Donation Impact
+                </h6>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="donation-mini-card">
+                    <span class="donation-mini-amount">$35</span>
+                    <span class="donation-mini-text">Hygiene essentials</span>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="donation-mini-card">
+                    <span class="donation-mini-amount">$70</span>
+                    <span class="donation-mini-text">Food supplies</span>
+                </div>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="donation-mini-card">
+                    <span class="donation-mini-amount">$140</span>
+                    <span class="donation-mini-text">Sewing machine</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Below -->
+<div class="min-vh-100 d-flex justify-content-center align-items-center p-3" style="padding-top: 120px !important;">
+    <div class="container-md main-container rounded-4 shadow-lg p-4">
+        <!-- Title Section -->
+        <div class="text-center mb-4">
+            <div class="d-flex justify-content-center align-items-center mb-3 flex-wrap">
+                <img id="campaignImage" class="rounded-3 border border-2 border-primary-subtle me-3"
+                    style="width: 70px; height: 70px; object-fit: cover;"
+                    src="https://www.filepicker.io/api/file/jHiKQ5SZQxWKWNZAR9Ud">
+                <h1 id="campaignTitle" class="display-5 fw-bold text-primary mb-0">Essentials First Campaign</h1>
+            </div>
+            <p id="campaignSlogan" class="fs-5 text-muted mb-0">Help us reach our goal!</p>
+        </div>
+
+        <!-- QR Code and Thermometer Row -->
+        <div class="row align-items-center justify-content-center">
+            <!-- QR Code -->
+            <div class="col-12 col-lg-6 text-center mb-4 mb-lg-0">
+                <div class="card border-0 shadow-lg h-100">
+                    <div class="card-header bg-success text-white py-3">
+                        <h3 class="mb-0 fw-bold fs-3">
+                            <i class="fas fa-qrcode me-2"></i>Scan to Donate
+                        </h3>
+                    </div>
+                    <div class="card-body py-4">
+                        <img src="donation_qr.jpg" alt="Donation QR Code" class="img-fluid shadow-lg rounded-3" style="max-width: 350px;">
+                        <p class="mt-3 mb-0 text-muted fs-5">Scan with your phone to donate</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thermometer -->
+            <div class="col-12 col-lg-6 d-flex flex-column align-items-center">
+                <div class="text-center mb-4">
+                    <h3 class="fs-3 fw-bold text-primary mb-3">Campaign Progress</h3>
+                    <div class="d-flex justify-content-between mb-4" style="width: 280px;">
+                        <span id="currentAmountText" class="fs-4 fw-bold text-primary">$0</span>
+                        <span id="goalAmountText" class="fs-5 fw-semibold text-muted">$50,000</span>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div id="percentageDisplay" class="fs-4 fw-bold text-primary mb-4">0%</div>
+                    <div class="position-relative">
+                        <div class="vertical-thermometer" style="width: 110px; height: 500px;">
+                            <div id="thermometerFillVertical" class="thermometer-fill-vertical"></div>
+                            <div id="thermometerBulb" class="thermometer-bulb" style="width: 150px; height: 150px; bottom: -30px;">
+                                <div class="thermometer-inner-bulb" style="width: 105px; height: 105px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional CSS for Option 3 -->
+<style>
+.donation-top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid #e9ecef;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.donation-mini-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 8px 12px;
+    display: inline-block;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.donation-mini-card:hover {
+    border-color: var(--ef-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(44, 90, 160, 0.15);
+}
+
+.donation-mini-amount {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ef-primary);
+    display: block;
+}
+
+.donation-mini-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ef-dark);
+    display: block;
+    line-height: 1.2;
+}
+</style>

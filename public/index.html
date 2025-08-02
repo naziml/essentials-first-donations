@@ -100,14 +100,14 @@
         }
 
         .vertical-thermometer {
-            width: 80px;
-            height: 450px;
+            width: 120px;
+            height: 600px;
             background-color: #f8f9fa;
-            border-radius: 40px;
+            border-radius: 60px;
             position: relative;
             overflow: hidden;
-            border: 4px solid #495057;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+            border: 6px solid #495057;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.1);
         }
 
         .thermometer-fill-vertical {
@@ -116,9 +116,9 @@
             left: 0;
             width: 100%;
             background: linear-gradient(to top, #dc3545, #fd7e14, #ffc107);
-            border-radius: 0 0 36px 36px;
+            border-radius: 0 0 54px 54px;
             transition: height 0.8s ease-in-out;
-            box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
+            box-shadow: 0 0 25px rgba(220, 53, 69, 0.4);
         }
 
         .thermometer-fill-vertical.goal-reached {
@@ -138,21 +138,21 @@
 
         .thermometer-bulb {
             position: absolute;
-            bottom: -25px;
+            bottom: -35px;
             left: 50%;
             transform: translateX(-50%);
-            width: 120px;
-            height: 120px;
+            width: 160px;
+            height: 160px;
             background: #dc3545;
             border-radius: 50%;
-            border: 4px solid #495057;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            border: 6px solid #495057;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
             z-index: 2;
         }
 
         .thermometer-bulb.goal-reached {
             background: #28a745;
-            box-shadow: 0 0 30px rgba(40, 167, 69, 0.4);
+            box-shadow: 0 0 40px rgba(40, 167, 69, 0.5);
         }
 
         .thermometer-inner-bulb {
@@ -160,40 +160,48 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
+            width: 110px;
+            height: 110px;
             background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
             border-radius: 50%;
         }
 
         .goal-markers {
             position: absolute;
-            right: -60px;
+            right: -80px;
             top: 0;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 15px 0;
         }
 
         .goal-marker {
             display: flex;
             align-items: center;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
             color: #495057;
         }
 
         .goal-marker::before {
             content: '';
-            width: 20px;
-            height: 2px;
+            width: 30px;
+            height: 3px;
             background: #495057;
-            margin-right: 8px;
+            margin-right: 10px;
         }
 
         .thermometer-container {
+            position: relative;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            min-height: 700px;
+        }
+
+        .thermometer-container-compact {
             position: relative;
             display: flex;
             align-items: end;
@@ -205,46 +213,142 @@
             min-height: 600px;
         }
 
+        .donation-impact-section {
+            margin-top: 1rem;
+        }
+
         .donation-tier-card {
             background: white;
             border: 2px solid #e9ecef;
             border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 20px;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
         }
 
-        .donation-tier-card:hover {
+        .donation-tier-card-compact {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .donation-tier-card:hover,
+        .donation-tier-card-compact:hover {
             border-color: var(--ef-primary);
             box-shadow: 0 4px 16px rgba(44, 90, 160, 0.15);
             transform: translateY(-2px);
         }
 
         .donation-amount {
-            font-size: 1.5rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--ef-primary);
+            margin-bottom: 12px;
+        }
+
+        .donation-amount-compact {
+            font-size: 1.4rem;
             font-weight: 700;
             color: var(--ef-primary);
             margin-bottom: 8px;
         }
 
         .donation-title {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
             color: var(--ef-dark);
-            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .donation-title-compact {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--ef-dark);
             line-height: 1.3;
         }
 
-        .donation-description {
-            font-size: 0.85rem;
-            color: var(--ef-gray);
-            line-height: 1.4;
-            margin-bottom: 0;
+        .donation-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            height: 100%;
         }
 
-        .donation-tiers-section {
-            min-height: 600px;
+        .donation-tier-card-sidebar {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .donation-tier-card-sidebar:hover {
+            border-color: var(--ef-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 90, 160, 0.15);
+        }
+
+        .donation-amount-sidebar {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ef-primary);
+            margin-bottom: 8px;
+        }
+
+        .donation-title-sidebar {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--ef-dark);
+            line-height: 1.3;
+        }
+
+        .donation-top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #e9ecef;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .donation-mini-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 8px 12px;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+
+        .donation-mini-card:hover {
+            border-color: var(--ef-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(44, 90, 160, 0.15);
+        }
+
+        .donation-mini-amount {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--ef-primary);
+            display: block;
+        }
+
+        .donation-mini-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--ef-dark);
+            display: block;
+            line-height: 1.2;
         }
     </style>
 </head>
@@ -253,114 +357,86 @@
     <!-- Connection Status Indicator -->
     <div id="connectionStatus" class="connection-status connecting">Connecting...</div>
 
-    <!-- Public Facing Display -->
-    <div class="min-vh-100 d-flex justify-content-center align-items-center p-4">
+    <!-- Public Facing Display - Side by Side Layout -->
+    <div class="min-vh-100 d-flex justify-content-center align-items-center p-3">
         <div class="container-md main-container rounded-4 shadow-lg p-4">
-            <!-- Main Title at Top with Logo -->
-            <div class="text-center mb-5">
+            <!-- Title Section -->
+            <div class="text-center mb-4">
                 <div class="d-flex justify-content-center align-items-center mb-3 flex-wrap">
-                    <img id="campaignImage" class="rounded-3 border border-2 border-primary-subtle me-3 mb-2 mb-sm-0"
-                        style="width: 80px; height: 80px; object-fit: cover;"
+                    <img id="campaignImage" class="rounded-3 border border-2 border-primary-subtle me-3"
+                        style="width: 60px; height: 60px; object-fit: cover;"
                         src="https://www.filepicker.io/api/file/jHiKQ5SZQxWKWNZAR9Ud"
-                        onerror="this.src='https://placehold.co/80x80/cbd5e1/1f2937?text=Logo'">
-                    <h1 id="campaignTitle" class="display-4 fw-bold text-primary mb-0">Essentials First Youth
-                        Fundraising Campaign
-                    </h1>
+                        onerror="this.src='https://placehold.co/60x60/cbd5e1/1f2937?text=Logo'">
+                    <h1 id="campaignTitle" class="display-6 fw-bold text-primary mb-0">Essentials First Youth Fundraising Campaign</h1>
                 </div>
-                <p id="campaignSlogan" class="fs-5 text-muted mb-0 fw-light">Help us reach our goal!</p>
+                <p id="campaignSlogan" class="fs-6 text-muted mb-0 fw-light">Help us reach our goal!</p>
             </div>
 
-            <!-- QR Code, Thermometer, and Donation Tiers Section -->
-            <div class="qr-thermometer-section mb-5">
-                <div class="row align-items-start justify-content-center">
-                    <!-- QR Code Column -->
-                    <div class="col-12 col-lg-4 text-center mb-4 mb-lg-0">
-                        <div class="card border-0 shadow-lg">
-                            <div class="card-header bg-success text-white py-3">
-                                <h3 class="mb-0 fw-bold fs-4">
-                                    <i class="fas fa-qrcode me-2"></i>
-                                    Scan to Donate
-                                </h3>
+            <!-- QR Code and Thermometer Side by Side -->
+            <div class="row align-items-center justify-content-center mb-4">
+                <!-- QR Code Section (Left) -->
+                <div class="col-12 col-lg-6 text-center">
+                    <img src="donation_qr.jpg" alt="Donation QR Code" class="img-fluid shadow-lg rounded-3" style="max-width: 450px; width: 100%;">
+                </div>
+
+                <!-- Thermometer Section (Right) -->
+                <div class="col-12 col-lg-6 d-flex flex-column align-items-center">
+                    <div class="text-center mb-4">
+                        <h3 class="fs-4 fw-bold text-primary mb-3">
+                            <i class="fas fa-thermometer-half me-2"></i>
+                            Campaign Progress
+                        </h3>
+                        <div class="d-flex justify-content-between mb-4" style="width: 280px;">
+                            <span id="currentAmountText" class="fs-4 fw-bold text-primary">$0</span>
+                            <span id="goalAmountText" class="fs-5 fw-semibold text-muted">$50,000</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div id="percentageDisplay" class="fs-4 fw-bold text-primary mb-4">0%</div>
+                        <div class="position-relative">
+                            <div class="vertical-thermometer" style="width: 110px; height: 400px;">
+                                <div id="thermometerFillVertical" class="thermometer-fill-vertical"></div>
+                                <div id="thermometerBulb" class="thermometer-bulb" style="width: 140px; height: 140px; bottom: -25px;">
+                                    <div class="thermometer-inner-bulb" style="width: 95px; height: 95px;"></div>
+                                </div>
                             </div>
-                            <div class="card-body py-4">
-                                <img src="donation_qr.jpg" alt="Donation QR Code" class="img-fluid shadow-lg rounded-3" style="max-width: 300px; width: 100%; height: auto;">
-                                <p class="mt-3 mb-0 text-muted fs-6 fw-semibold">Scan this QR code with your phone to make a donation</p>
+                            <!-- Goal markers -->
+                            <div class="goal-markers" style="right: -70px;">
+                                <span class="goal-marker" id="goal100" style="font-size: 14px;">$50,000</span>
+                                <span class="goal-marker" id="goal75" style="font-size: 14px;">$37,500</span>
+                                <span class="goal-marker" id="goal50" style="font-size: 14px;">$25,000</span>
+                                <span class="goal-marker" id="goal25" style="font-size: 14px;">$12,500</span>
+                                <span class="goal-marker" id="goal0" style="font-size: 14px;">$0</span>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Thermometer Column -->
-                    <div class="col-12 col-lg-4 d-flex flex-column align-items-center mb-4 mb-lg-0">
-                        <!-- Campaign Progress Header -->
-                        <div class="text-center mb-4">
-                            <h3 class="fs-4 fw-bold text-primary mb-2">
-                                <i class="fas fa-thermometer-half me-2"></i>
-                                Campaign Progress
-                            </h3>
-                            <div class="d-flex justify-content-between align-items-center mb-3" style="width: 250px;">
-                                <span id="currentAmountText" class="fs-5 fw-bold text-primary">$0</span>
-                                <span id="goalAmountText" class="fs-6 fw-semibold text-muted">$50,000</span>
-                            </div>
-                        </div>
-
-                        <!-- Vertical Thermometer -->
-                        <div class="thermometer-container">
-                            <div class="text-center">
-                                <div id="percentageDisplay" class="fs-5 fw-bold text-primary mb-3">0%</div>
-                                <div class="position-relative">
-                                    <div class="vertical-thermometer" style="width: 60px; height: 350px;">
-                                        <div id="thermometerFillVertical" class="thermometer-fill-vertical"></div>
-                                        <div id="thermometerBulb" class="thermometer-bulb" style="width: 100px; height: 100px; bottom: -20px;">
-                                            <div class="thermometer-inner-bulb" style="width: 65px; height: 65px;"></div>
-                                        </div>
-                                    </div>
-                                    <!-- Goal markers with dollar amounts -->
-                                    <div class="goal-markers" style="right: -50px;">
-                                        <span class="goal-marker" id="goal100" style="font-size: 12px;">$50,000</span>
-                                        <span class="goal-marker" id="goal75" style="font-size: 12px;">$37,500</span>
-                                        <span class="goal-marker" id="goal50" style="font-size: 12px;">$25,000</span>
-                                        <span class="goal-marker" id="goal25" style="font-size: 12px;">$12,500</span>
-                                        <span class="goal-marker" id="goal0" style="font-size: 12px;">$0</span>
-                                    </div>
-                                </div>
-                            </div>
+            <!-- Donation Impact Section -->
+            <div class="donation-impact-section">
+                <div class="text-center mb-4">
+                    <h3 class="fs-4 fw-bold text-primary mb-3">
+                        <i class="fas fa-gift me-2"></i>Your Donation Impact
+                    </h3>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="donation-tier-card-compact">
+                            <div class="donation-amount-compact">$35</div>
+                            <div class="donation-title-compact">1 month of hygiene essentials</div>
                         </div>
                     </div>
-
-                    <!-- Donation Tiers Column -->
-                    <div class="col-12 col-lg-4">
-                        <div class="donation-tiers-section">
-                            <h3 class="fs-4 fw-bold text-primary mb-4 text-center">
-                                <i class="fas fa-gift me-2"></i>
-                                Donation Impact
-                            </h3>
-                            
-                            <!-- $35 Tier -->
-                            <div class="donation-tier-card">
-                                <div class="donation-amount">$35</div>
-                                <div class="donation-title">1 month of hygiene essentials for 2–3 people</div>
-                                <div class="donation-description">
-                                    $35 sponsors the purchase and distribution of personal and household hygiene essentials for one household in need in our community. This includes: shampoo, soap, conditioner, sanitary items for women, toothpaste, toothbrush, razor, laundry detergent, wipes, deodorant, and dishwashing liquid.
-                                </div>
-                            </div>
-
-                            <!-- $70 Tier -->
-                            <div class="donation-tier-card">
-                                <div class="donation-amount">$70</div>
-                                <div class="donation-title">1 month of hygiene essentials for 4–6 people</div>
-                                <div class="donation-description">
-                                    $70 sponsors the purchase and distribution of personal and household hygiene essentials for one large household or two smaller households in need in our community. This includes: shampoo, soap, conditioner, sanitary items for women, toothpaste, toothbrush, razor, laundry detergent, wipes, deodorant, and dishwashing liquid.
-                                </div>
-                            </div>
-
-                            <!-- $140 Tier -->
-                            <div class="donation-tier-card">
-                                <div class="donation-amount">$140</div>
-                                <div class="donation-title">1 month of hygiene essentials for 1 family of 7+</div>
-                                <div class="donation-description">
-                                    $140 sponsors the purchase and distribution of personal and household hygiene essentials for one large household in need in our community. This includes: shampoo, soap, conditioner, sanitary items for women, toothpaste, toothbrush, razor, laundry detergent, wipes, deodorant, and dishwashing liquid.
-                                </div>
-                            </div>
+                    <div class="col-md-4">
+                        <div class="donation-tier-card-compact">
+                            <div class="donation-amount-compact">$70</div>
+                            <div class="donation-title-compact">1 month of culturally appropriate food supplies</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="donation-tier-card-compact">
+                            <div class="donation-amount-compact">$140</div>
+                            <div class="donation-title-compact">1 sewing machine to build essential skills</div>
                         </div>
                     </div>
                 </div>

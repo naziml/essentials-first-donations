@@ -1,9 +1,9 @@
-name: donation-meter-app
+name: essentials-first-donations
 infra:
   provider: bicep
   
 services:
-  donation-meter:
+  donations-web-app:
     project: ./
     host: appservice
-    language: js
+    language: ts

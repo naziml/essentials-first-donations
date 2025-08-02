@@ -1,5 +1,5 @@
-# Use the official Node.js 18 LTS Alpine image for smaller size and better security
-FROM node:18-alpine
+# Use the official Node.js 18 LTS image for better compatibility
+FROM node:18
 
 # Set the working directory inside the container
 WORKDIR /app
