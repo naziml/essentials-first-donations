@@ -485,6 +485,43 @@
                     </div>
                 </div>
 
+                <!-- Pledge Management -->
+                <div class="col-12 col-md-6">
+                    <div class="p-4 bg-white rounded-3 shadow-sm">
+                        <h3 class="fs-4 fw-semibold mb-3 text-dark">Pledge Management</h3>
+                        <div class="mb-3">
+                            <label for="pledgeInput" class="form-label small fw-medium text-muted">Add Pledge Amount ($)</label>
+                            <div class="d-flex gap-2">
+                                <input type="number" id="pledgeInput" placeholder="0.00" step="0.01" min="0" class="form-control">
+                                <button id="addPledgeButton" class="btn btn-success fw-bold text-nowrap">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Donorbox Amount</small>
+                                    <span id="scrapedAmount" class="fw-bold text-primary">$0</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Total Pledges</small>
+                                    <span id="pledgeAmount" class="fw-bold text-success">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button id="resetPledgesButton" class="btn btn-outline-danger fw-bold w-100">
+                            <i class="fas fa-trash me-2"></i>
+                            Reset Pledges
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Customization Inputs -->
                 <div class="col-12 col-md-6">
                     <div class="p-4 bg-white rounded-3 shadow-sm">
@@ -541,6 +578,9 @@
         const updateAmountButton = document.getElementById('updateAmountButton');
         const resetButton = document.getElementById('resetButton');
         const syncDonorboxButton = document.getElementById('syncDonorboxButton');
+        const addPledgeButton = document.getElementById('addPledgeButton');
+        const resetPledgesButton = document.getElementById('resetPledgesButton');
+        const pledgeInput = document.getElementById('pledgeInput');
 
         // --- Confetti Setup ---
         const jsConfetti = new JSConfetti();
@@ -609,6 +649,20 @@
             }
         });
 
+        socket.on('pledgeResult', (result) => {
+            console.log('Pledge result received:', result);
+            const statusElement = document.createElement('div');
+            statusElement.style.cssText = `position: fixed; top: 70px; right: 10px; background: ${result.success ? '#28a745' : '#dc3545'}; color: white; padding: 10px; border-radius: 5px; z-index: 1001; font-size: 12px;`;
+            statusElement.textContent = result.message;
+            document.body.appendChild(statusElement);
+            setTimeout(() => statusElement.remove(), 5000);
+            
+            // Clear pledge input on successful add
+            if (result.success && !result.message.includes('reset')) {
+                document.getElementById('pledgeInput').value = '';
+            }
+        });
+
         // --- Data Handling Functions ---
         function updateInputsFromServer(data) {
             goalInput.value = data.goal || 0;
@@ -616,6 +670,14 @@
             titleInput.value = data.title || '';
             sloganInput.value = data.slogan || '';
             imageInput.value = data.image || '';
+            
+            // Update pledge display amounts
+            if (document.getElementById('scrapedAmount')) {
+                document.getElementById('scrapedAmount').textContent = '$' + (data.scraped || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+            if (document.getElementById('pledgeAmount')) {
+                document.getElementById('pledgeAmount').textContent = '$' + (data.pledges || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
         }
 
         function sendDonationUpdate() {
@@ -748,6 +810,32 @@
                 syncDonorboxButton.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Sync with Donorbox';
                 syncDonorboxButton.disabled = false;
             }, 3000);
+        });
+
+        // Add Pledge button functionality
+        addPledgeButton.addEventListener('click', () => {
+            const amount = parseFloat(pledgeInput.value);
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid pledge amount greater than $0.');
+                return;
+            }
+            
+            socket.emit('addPledge', amount);
+        });
+
+        // Reset Pledges button functionality
+        resetPledgesButton.addEventListener('click', () => {
+            const isConfirmed = window.confirm('Are you sure you want to reset all pledges? This cannot be undone.');
+            if (isConfirmed) {
+                socket.emit('resetPledges');
+            }
+        });
+
+        // Allow Enter key to add pledge
+        pledgeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addPledgeButton.click();
+            }
         });
 
         // Initial connection status

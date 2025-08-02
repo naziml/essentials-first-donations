@@ -7,6 +7,7 @@ const compression = require('compression');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const cors = require('cors');
+const fs = require('fs').promises;
 
 const app = express();
 const server = http.createServer(app);
@@ -49,13 +50,51 @@ app.use(express.static(path.join(__dirname, 'public')));
 let donationData = {
   goal: 50000,
   current: 0,
+  scraped: 0, // Amount scraped from Donorbox
+  pledges: 0, // Total pledge amounts
   title: 'Essentials First Youth Fundraising Campaign',
   slogan: 'Help us reach our goal!',
   image: 'https://www.filepicker.io/api/file/jHiKQ5SZQxWKWNZAR9Ud'
 };
 
+// File path for storing pledges
+const PLEDGES_FILE = path.join(__dirname, 'pledges.json');
+
 // Donorbox configuration
 const DONORBOX_URL = 'https://donorbox.org/essentials-first-august-2nd-fundraiser';
+
+// Load pledges from file on startup
+async function loadPledges() {
+    try {
+        const data = await fs.readFile(PLEDGES_FILE, 'utf8');
+        const pledgeData = JSON.parse(data);
+        donationData.pledges = pledgeData.total || 0;
+        console.log(`Loaded pledges: $${donationData.pledges}`);
+    } catch (error) {
+        console.log('No existing pledges file found, starting with $0 pledges');
+        donationData.pledges = 0;
+    }
+    updateCurrentTotal();
+}
+
+// Save pledges to file
+async function savePledges() {
+    try {
+        const pledgeData = {
+            total: donationData.pledges,
+            lastUpdated: new Date().toISOString()
+        };
+        await fs.writeFile(PLEDGES_FILE, JSON.stringify(pledgeData, null, 2));
+        console.log(`Saved pledges: $${donationData.pledges}`);
+    } catch (error) {
+        console.error('Error saving pledges:', error);
+    }
+}
+
+// Update the current total (scraped + pledges)
+function updateCurrentTotal() {
+    donationData.current = donationData.scraped + donationData.pledges;
+}
 
 // Function to fetch data from Donorbox
 async function fetchDonorboxData() {
@@ -210,14 +249,17 @@ async function fetchDonorboxData() {
         
         // Update donation data only if we found valid amounts
         if (raisedAmount > 0) {
-            donationData.current = raisedAmount;
+            donationData.scraped = raisedAmount;
+            updateCurrentTotal();
         }
         if (goalAmount > 0 && goalAmount !== 50000) { // Only update if different from default
             donationData.goal = goalAmount;
         }
         
         return {
-            current: raisedAmount,
+            current: donationData.current,
+            scraped: donationData.scraped,
+            pledges: donationData.pledges,
             goal: goalAmount,
             success: raisedAmount > 0
         };
@@ -225,6 +267,8 @@ async function fetchDonorboxData() {
         console.error('Error fetching Donorbox data:', error.message);
         return {
             current: donationData.current,
+            scraped: donationData.scraped,
+            pledges: donationData.pledges,
             goal: donationData.goal,
             success: false,
             error: error.message
@@ -232,8 +276,10 @@ async function fetchDonorboxData() {
     }
 }
 
-// Sync with Donorbox on startup
-fetchDonorboxData();
+// Load pledges and sync with Donorbox on startup
+loadPledges().then(() => {
+    fetchDonorboxData();
+});
 
 // Set up periodic sync every 5 minutes
 setInterval(async () => {
@@ -307,14 +353,14 @@ io.on('connection', (socket) => {
       const result = await fetchDonorboxData();
       
       if (result.success) {
-        console.log(`Manual sync successful - Raised: $${result.current}, Goal: $${result.goal}`);
+        console.log(`Manual sync successful - Scraped: $${result.scraped}, Pledges: $${result.pledges}, Total: $${result.current}, Goal: $${result.goal}`);
         // Broadcast updated data to all connected clients
         io.emit('donationUpdate', donationData);
         
         // Send success feedback to the requesting client
         socket.emit('syncResult', { 
           success: true, 
-          message: `Successfully synced! Raised: $${result.current}`,
+          message: `Successfully synced! Scraped: $${result.scraped}, Pledges: $${result.pledges}, Total: $${result.current}`,
           data: donationData 
         });
       } else {
@@ -333,17 +379,80 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Handle adding pledges
+  socket.on('addPledge', async (amount) => {
+    try {
+      const pledgeAmount = parseFloat(amount);
+      if (!isNaN(pledgeAmount) && pledgeAmount > 0 && pledgeAmount <= 50000) { // Reasonable limit
+        donationData.pledges += pledgeAmount;
+        updateCurrentTotal();
+        await savePledges();
+        
+        console.log(`Pledge added: $${pledgeAmount}, new pledge total: $${donationData.pledges}, new overall total: $${donationData.current}`);
+        
+        // Broadcast updated data to all connected clients
+        io.emit('donationUpdate', donationData);
+        
+        socket.emit('pledgeResult', { 
+          success: true, 
+          message: `Pledge of $${pledgeAmount} added! New total: $${donationData.current}`,
+          data: donationData 
+        });
+      } else {
+        socket.emit('pledgeResult', { 
+          success: false, 
+          message: 'Invalid pledge amount (must be between $0.01 and $50,000)' 
+        });
+      }
+    } catch (error) {
+      console.error('Error adding pledge:', error);
+      socket.emit('pledgeResult', { 
+        success: false, 
+        message: 'Error adding pledge: ' + error.message 
+      });
+    }
+  });
+
+  // Handle resetting pledges
+  socket.on('resetPledges', async () => {
+    try {
+      donationData.pledges = 0;
+      updateCurrentTotal();
+      await savePledges();
+      
+      console.log('Pledges reset to $0');
+      
+      // Broadcast updated data to all connected clients
+      io.emit('donationUpdate', donationData);
+      
+      socket.emit('pledgeResult', { 
+        success: true, 
+        message: 'Pledges reset to $0',
+        data: donationData 
+      });
+    } catch (error) {
+      console.error('Error resetting pledges:', error);
+      socket.emit('pledgeResult', { 
+        success: false, 
+        message: 'Error resetting pledges: ' + error.message 
+      });
+    }
+  });
+
   // Handle reset
-  socket.on('reset', () => {
+  socket.on('reset', async () => {
     try {
       donationData = {
         goal: 50000,
         current: 0,
+        scraped: 0,
+        pledges: 0,
         title: 'Essentials First Youth Fundraising Campaign',
         slogan: 'Help us reach our goal!',
         image: 'https://www.filepicker.io/api/file/jHiKQ5SZQxWKWNZAR9Ud'
       };
       
+      await savePledges();
       console.log('Donation data reset to defaults');
       
       // Broadcast reset data to all connected clients
