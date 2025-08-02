@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundraising Thermometer</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JSConfetti for celebration animations -->
+    <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+    <!-- Socket.IO Client -->
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --ef-primary: #2c5aa0;
+            --ef-secondary: #5c7cfa;
+            --ef-success: #28a745;
+            --ef-light-blue: #e3f2fd;
+            --ef-dark: #1a1a1a;
+            --ef-gray: #6c757d;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--ef-light-blue) 0%, #f8f9ff 100%);
+        }
+
+        .text-primary {
+            color: var(--ef-primary) !important;
+        }
+
+        .bg-primary {
+            background-color: var(--ef-primary) !important;
+        }
+
+        .border-primary-subtle {
+            border-color: var(--ef-secondary) !important;
+        }
+
+        .thermometer-fill {
+            background: linear-gradient(to right, var(--ef-primary), var(--ef-secondary));
+            transition: width 0.5s ease-in-out;
+        }
+
+        .goal-reached {
+            background: linear-gradient(to right, var(--ef-success), #20c997) !important;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .connected {
+            background-color: var(--ef-success);
+            color: white;
+        }
+
+        .disconnected {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .connecting {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .card-header.bg-success {
+            background-color: var(--ef-success) !important;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .vertical-thermometer {
+            width: 80px;
+            height: 450px;
+            background-color: #f8f9fa;
+            border-radius: 40px;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #495057;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .thermometer-fill-vertical {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, #dc3545, #fd7e14, #ffc107);
+            border-radius: 0 0 36px 36px;
+            transition: height 0.8s ease-in-out;
+            box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .thermometer-fill-vertical.goal-reached {
+            background: linear-gradient(to top, #28a745, #20c997, #17a2b8) !important;
+            animation: pulse-vertical 1.5s ease-in-out infinite;
+            box-shadow: 0 0 25px rgba(40, 167, 69, 0.5);
+        }
+
+        @keyframes pulse-vertical {
+            0%, 100% {
+                transform: scaleY(1);
+            }
+            50% {
+                transform: scaleY(1.02);
+            }
+        }
+
+        .thermometer-bulb {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 120px;
+            background: #dc3545;
+            border-radius: 50%;
+            border: 4px solid #495057;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        .thermometer-bulb.goal-reached {
+            background: #28a745;
+            box-shadow: 0 0 30px rgba(40, 167, 69, 0.4);
+        }
+
+        .thermometer-inner-bulb {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+            border-radius: 50%;
+        }
+
+        .goal-markers {
+            position: absolute;
+            right: -60px;
+            top: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+
+        .goal-marker {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .goal-marker::before {
+            content: '';
+            width: 20px;
+            height: 2px;
+            background: #495057;
+            margin-right: 8px;
+        }
+
+        .thermometer-container {
+            position: relative;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            min-height: 500px;
+        }
+
+        .qr-thermometer-section {
+            min-height: 600px;
+        }
+
+        .donation-tier-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .donation-tier-card:hover {
+            border-color: var(--ef-primary);
+            box-shadow: 0 4px 16px rgba(44, 90, 160, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .donation-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ef-primary);
+            margin-bottom: 8px;
+        }
+
+        .donation-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--ef-dark);
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .donation-description {
+            font-size: 0.85rem;
+            color: var(--ef-gray);
+            line-height: 1.4;
+            margin-bottom: 0;
+        }
+
+        .donation-tiers-section {
+            min-height: 600px;
+        }
+    </style>
+</head>
+
+<body class="bg-info-subtle">
+    <!-- Connection Status Indicator -->
+    <div id="connectionStatus" class="connection-status connecting">Connecting...</div>
+
+    <!-- Public Facing Display -->
+    <div class="min-vh-100 d-flex justify-content-center align-items-center p-4">
+        <div class="container-md main-container rounded-4 shadow-lg p-4">
+            <!-- Main Title at Top with Logo -->
+            <div class="text-center mb-5">
+                <div class="d-flex justify-content-center align-items-center mb-3 flex-wrap">
+                    <img id="campaignImage" class="rounded-3 border border-2 border-primary-subtle me-3 mb-2 mb-sm-0"
+                        style="width: 80px; height: 80px; object-fit: cover;"
+                        src="https://www.filepicker.io/api/file/jHiKQ5SZQxWKWNZAR9Ud"
+                        onerror="this.src='https://placehold.co/80x80/cbd5e1/1f2937?text=Logo'">
+                    <h1 id="campaignTitle" class="display-4 fw-bold text-primary mb-0">Essentials First Youth
+                        Fundraising Campaign
+                    </h1>
+                </div>
+                <p id="campaignSlogan" class="fs-5 text-muted mb-0 fw-light">Help us reach our goal!</p>
+            </div>
+
+            <!-- QR Code, Thermometer, and Donation Tiers Section -->
+            <div class="qr-thermometer-section mb-5">
+                <div class="row align-items-start justify-content-center">
+                    <!-- QR Code Column -->
+                    <div class="col-12 col-lg-4 text-center mb-4 mb-lg-0">
+                        <div class="card border-0 shadow-lg">
+                            <div class="card-header bg-success text-white py-3">
+                                <h3 class="mb-0 fw-bold fs-4">
+                                    <i class="fas fa-qrcode me-2"></i>
+                                    Scan to Donate
+                                </h3>
+                            </div>
+                            <div class="card-body py-4">
+                                <img src="donation_qr.jpg" alt="Donation QR Code" class="img-fluid shadow-lg rounded-3" style="max-width: 300px; width: 100%; height: auto;">
+                                <p class="mt-3 mb-0 text-muted fs-6 fw-semibold">Scan this QR code with your phone to make a donation</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thermometer Column -->
+                    <div class="col-12 col-lg-4 d-flex flex-column align-items-center mb-4 mb-lg-0">
+                        <!-- Campaign Progress Header -->
+                        <div class="text-center mb-4">
+                            <h3 class="fs-4 fw-bold text-primary mb-2">
+                                <i class="fas fa-thermometer-half me-2"></i>
+                                Campaign Progress
+                            </h3>
+                            <div class="d-flex justify-content-between align-items-center mb-3" style="width: 250px;">
+                                <span id="currentAmountText" class="fs-5 fw-bold text-primary">$0</span>
+                                <span id="goalAmountText" class="fs-6 fw-semibold text-muted">$50,000</span>
+                            </div>
+                        </div>
+
+                        <!-- Vertical Thermometer -->
+                        <div class="thermometer-container">
+                            <div class="text-center">
+                                <div id="percentageDisplay" class="fs-5 fw-bold text-primary mb-3">0%</div>
+                                <div class="position-relative">
+                                    <div class="vertical-thermometer" style="width: 60px; height: 350px;">
+                                        <div id="thermometerFillVertical" class="thermometer-fill-vertical"></div>
+                                        <div id="thermometerBulb" class="thermometer-bulb" style="width: 100px; height: 100px; bottom: -20px;">
+                                            <div class="thermometer-inner-bulb" style="width: 65px; height: 65px;"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Goal markers with dollar amounts -->
+                                    <div class="goal-markers" style="right: -50px;">
+                                        <span class="goal-marker" id="goal100" style="font-size: 12px;">$50,000</span>
+                                        <span class="goal-marker" id="goal75" style="font-size: 12px;">$37,500</span>
+                                        <span class="goal-marker" id="goal50" style="font-size: 12px;">$25,000</span>
+                                        <span class="goal-marker" id="goal25" style="font-size: 12px;">$12,500</span>
+                                        <span class="goal-marker" id="goal0" style="font-size: 12px;">$0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Donation Tiers Column -->
+                    <div class="col-12 col-lg-4">
+                        <div class="donation-tiers-section">
+                            <h3 class="fs-4 fw-bold text-primary mb-4 text-center">
+                                <i class="fas fa-gift me-2"></i>
+                                Donation Impact
+                            </h3>
+                            
+                            <!-- $35 Tier -->
+                            <div class="donation-tier-card">
+                                <div class="donation-amount">$35</div>
+                                <div class="donation-title">1 month of hygiene essentials for 2–3 people</div>
+                                <div class="donation-description">
+                                    $35 sponsors the purchase and distribution of personal and household hygiene essentials for one household in need in our community. This includes: shampoo, soap, conditioner, sanitary items for women, toothpaste, toothbrush, razor, laundry detergent, wipes, deodorant, and dishwashing liquid.
+                                </div>
+                            </div>
+
+                            <!-- $70 Tier -->
+                            <div class="donation-tier-card">
+                                <div class="donation-amount">$70</div>
+                                <div class="donation-title">1 month of hygiene essentials for 4–6 people</div>
+                                <div class="donation-description">
+                                    $70 sponsors the purchase and distribution of personal and household hygiene essentials for one large household or two smaller households in need in our community. This includes: shampoo, soap, conditioner, sanitary items for women, toothpaste, toothbrush, razor, laundry detergent, wipes, deodorant, and dishwashing liquid.
+                                </div>
+                            </div>
+
+                            <!-- $140 Tier -->
+                            <div class="donation-tier-card">
+                                <div class="donation-amount">$140</div>
+                                <div class="donation-title">1 month of hygiene essentials for 1 family of 7+</div>
+                                <div class="donation-description">
+                                    $140 sponsors the purchase and distribution of personal and household hygiene essentials for one large household in need in our community. This includes: shampoo, soap, conditioner, sanitary items for women, toothpaste, toothbrush, razor, laundry detergent, wipes, deodorant, and dishwashing liquid.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Forms -->
+    <div class="min-vh-100 d-flex justify-content-center align-items-center p-4">
+        <div class="container-md bg-light rounded-4 shadow-lg p-4">
+            <h2 class="fs-2 fw-bold text-dark mb-4 text-center">Admin Controls</h2>
+            <div class="row g-3">
+                <!-- Fundraising Data Inputs -->
+                <div class="col-12 col-md-6">
+                    <div class="p-4 bg-white rounded-3 shadow-sm">
+                        <h3 class="fs-4 fw-semibold mb-3 text-dark">Fundraising Data</h3>
+                        <div class="mb-3">
+                            <label for="goalInput" class="form-label small fw-medium text-muted">Goal Amount ($)</label>
+                            <input type="number" id="goalInput" value="50000" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="currentInput" class="form-label small fw-medium text-muted">Current Amount
+                                Raised ($)</label>
+                            <div class="d-flex gap-2">
+                                <input type="number" id="currentInput" value="0" class="form-control">
+                                <button id="updateAmountButton" class="btn btn-primary fw-bold text-nowrap">
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="quick-add btn btn-success fw-bold small flex-fill"
+                                data-amount="100">+$100</button>
+                            <button class="quick-add btn btn-success fw-bold small flex-fill"
+                                data-amount="500">+$500</button>
+                            <button class="quick-add btn btn-success fw-bold small flex-fill"
+                                data-amount="1000">+$1K</button>
+                        </div>
+                        <div class="mt-3">
+                            <button id="syncDonorboxButton" class="btn btn-info fw-bold w-100">
+                                <i class="fas fa-sync-alt me-2"></i>
+                                Sync with Donorbox
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customization Inputs -->
+                <div class="col-12 col-md-6">
+                    <div class="p-4 bg-white rounded-3 shadow-sm">
+                        <h3 class="fs-4 fw-semibold mb-3 text-dark">Customize</h3>
+                        <div class="mb-3">
+                            <label for="titleInput" class="form-label small fw-medium text-muted">Campaign Title</label>
+                            <input type="text" id="titleInput" value="Essentials First Youth Fundraising Campaign"
+                                class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sloganInput" class="form-label small fw-medium text-muted">Campaign
+                                Slogan</label>
+                            <input type="text" id="sloganInput" value="Help us reach our goal!" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="imageInput" class="form-label small fw-medium text-muted">Image URL</label>
+                            <input type="text" id="imageInput"
+                                value="https://www.filepicker.io/api/file/jHiKQ5SZQxWKWNZAR9Ud" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reset Button -->
+            <button id="resetButton" class="btn btn-danger fw-bold w-100 mt-4 py-2">
+                Reset All Data
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Socket.IO Connection ---
+        const socket = io();
+        
+        // --- DOM Elements ---
+        const goalInput = document.getElementById('goalInput');
+        const currentInput = document.getElementById('currentInput');
+        const titleInput = document.getElementById('titleInput');
+        const sloganInput = document.getElementById('sloganInput');
+        const imageInput = document.getElementById('imageInput');
+
+        const campaignTitle = document.getElementById('campaignTitle');
+        const campaignSlogan = document.getElementById('campaignSlogan');
+        const campaignImage = document.getElementById('campaignImage');
+        const currentAmountText = document.getElementById('currentAmountText');
+        const goalAmountText = document.getElementById('goalAmountText');
+        const thermometerFillVertical = document.getElementById('thermometerFillVertical');
+        const thermometerBulb = document.getElementById('thermometerBulb');
+        const percentageDisplay = document.getElementById('percentageDisplay');
+        const connectionStatus = document.getElementById('connectionStatus');
+
+        const updateAmountButton = document.getElementById('updateAmountButton');
+        const resetButton = document.getElementById('resetButton');
+        const syncDonorboxButton = document.getElementById('syncDonorboxButton');
+
+        // --- Confetti Setup ---
+        const jsConfetti = new JSConfetti();
+        let goalReachedBefore = false;
+        let confettiInterval = null;
+        let confettiCount = 0;
+
+        // --- Connection Status Management ---
+        function updateConnectionStatus(status) {
+            connectionStatus.className = `connection-status ${status}`;
+            switch(status) {
+                case 'connected':
+                    connectionStatus.textContent = 'Connected';
+                    break;
+                case 'disconnected':
+                    connectionStatus.textContent = 'Disconnected';
+                    break;
+                case 'connecting':
+                    connectionStatus.textContent = 'Connecting...';
+                    break;
+                default:
+                    connectionStatus.textContent = 'Unknown';
+            }
+        }
+
+        // --- Socket Event Handlers ---
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            updateConnectionStatus('connected');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            updateConnectionStatus('disconnected');
+        });
+
+        socket.on('connecting', () => {
+            console.log('Connecting to server...');
+            updateConnectionStatus('connecting');
+        });
+
+        socket.on('donationUpdate', (data) => {
+            console.log('Received donation update:', data);
+            updateInputsFromServer(data);
+            updateUI();
+        });
+
+        socket.on('error', (error) => {
+            console.error('Socket error:', error);
+            alert('Error: ' + error.message);
+        });
+
+        // --- Data Handling Functions ---
+        function updateInputsFromServer(data) {
+            goalInput.value = data.goal || 0;
+            currentInput.value = data.current || 0;
+            titleInput.value = data.title || '';
+            sloganInput.value = data.slogan || '';
+            imageInput.value = data.image || '';
+        }
+
+        function sendDonationUpdate() {
+            const data = {
+                goal: parseFloat(goalInput.value) || 0,
+                current: parseFloat(currentInput.value) || 0,
+                title: titleInput.value,
+                slogan: sloganInput.value,
+                image: imageInput.value
+            };
+            socket.emit('updateDonation', data);
+        }
+
+        // --- UI Update Function ---
+        function updateUI() {
+            const goal = parseFloat(goalInput.value) || 0;
+            const current = parseFloat(currentInput.value) || 0;
+
+            // Update title and image
+            campaignTitle.textContent = titleInput.value;
+            campaignSlogan.textContent = sloganInput.value;
+            campaignImage.src = imageInput.value;
+
+            // Update amount text with proper currency formatting
+            currentAmountText.textContent = `$${current.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            })}`;
+            goalAmountText.textContent = `$${goal.toLocaleString('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            })}`;
+
+            // Update goal markers with dynamic dollar amounts
+            document.getElementById('goal100').textContent = `$${goal.toLocaleString('en-US')}`;
+            document.getElementById('goal75').textContent = `$${(goal * 0.75).toLocaleString('en-US')}`;
+            document.getElementById('goal50').textContent = `$${(goal * 0.5).toLocaleString('en-US')}`;
+            document.getElementById('goal25').textContent = `$${(goal * 0.25).toLocaleString('en-US')}`;
+            document.getElementById('goal0').textContent = '$0';
+
+            // Update vertical thermometer
+            const percentage = goal > 0 ? Math.min((current / goal) * 100, 100) : 0;
+            thermometerFillVertical.style.height = `${percentage}%`;
+            percentageDisplay.textContent = `${Math.round(percentage)}%`;
+
+            // Goal achievement celebration
+            if (percentage >= 100) {
+                thermometerFillVertical.classList.add('goal-reached');
+                thermometerBulb.classList.add('goal-reached');
+                percentageDisplay.textContent = '🎉 Goal Reached!';
+
+                // Trigger confetti burst explosion only when goal is first reached
+                if (!goalReachedBefore) {
+                    triggerGoalReachedConfetti();
+                    goalReachedBefore = true;
+                }
+            } else {
+                thermometerFillVertical.classList.remove('goal-reached');
+                thermometerBulb.classList.remove('goal-reached');
+                percentageDisplay.textContent = `${Math.round(percentage)}%`;
+                goalReachedBefore = false;
+                stopConfettiLoop(); // Stop confetti when goal is no longer reached
+            }
+        }
+
+        // --- Confetti Functions ---
+        function triggerGoalReachedConfetti() {
+            // Reset counter and fire first confetti
+            confettiCount = 1;
+            jsConfetti.addConfetti();
+
+            // Start looping confetti every 2 seconds, but only 3 times total
+            confettiInterval = setInterval(() => {
+                confettiCount++;
+                jsConfetti.addConfetti();
+
+                // Stop after 3 total bursts
+                if (confettiCount >= 3) {
+                    stopConfettiLoop();
+                }
+            }, 2000);
+        }
+
+        function stopConfettiLoop() {
+            if (confettiInterval) {
+                clearInterval(confettiInterval);
+                confettiInterval = null;
+            }
+            confettiCount = 0;
+        }
+
+        // --- Event Listeners ---
+        // Listen for changes on goal, title, slogan, and image to send updates
+        [goalInput, titleInput, sloganInput, imageInput].forEach(input => {
+            input.addEventListener('input', () => {
+                sendDonationUpdate();
+            });
+        });
+
+        // Event listener for the Update Amount button
+        updateAmountButton.addEventListener('click', () => {
+            sendDonationUpdate();
+        });
+
+        // Event listeners for quick amount buttons
+        document.querySelectorAll('.quick-add').forEach(button => {
+            button.addEventListener('click', () => {
+                const addAmount = parseFloat(button.dataset.amount);
+                socket.emit('quickAdd', addAmount);
+            });
+        });
+
+        // Reset button functionality
+        resetButton.addEventListener('click', () => {
+            const isConfirmed = window.confirm('Are you sure you want to reset all data? This cannot be undone.');
+            if (isConfirmed) {
+                socket.emit('reset');
+            }
+        });
+
+        // Sync with Donorbox button functionality
+        syncDonorboxButton.addEventListener('click', () => {
+            syncDonorboxButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Syncing...';
+            syncDonorboxButton.disabled = true;
+            
+            socket.emit('syncDonorbox');
+            
+            // Re-enable button after 3 seconds
+            setTimeout(() => {
+                syncDonorboxButton.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Sync with Donorbox';
+                syncDonorboxButton.disabled = false;
+            }, 3000);
+        });
+
+        // Initial connection status
+        updateConnectionStatus('connecting');
+    </script>
+</body>
+
+</html>

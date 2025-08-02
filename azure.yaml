@@ -1,0 +1,9 @@
+name: donation-meter-app
+infra:
+  provider: bicep
+  
+services:
+  donation-meter:
+    project: ./
+    host: appservice
+    language: js
