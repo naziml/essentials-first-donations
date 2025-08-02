@@ -78,20 +78,20 @@ async function fetchDonorboxData() {
         const pageText = $.text();
         console.log(`Full page text length: ${pageText.length}`);
         
-        // Enhanced regex patterns for finding amounts
+        // Enhanced regex patterns for finding amounts (including decimals)
         const raisedPatterns = [
-            /\$([0-9,]+)\s*raised/i,
-            /\$([0-9,]+)\s*Raised/,
-            /raised[\s:]*\$([0-9,]+)/i,
-            /([0-9,]+)\s*raised/i,
-            /total[\s:]*\$([0-9,]+)/i
+            /\$([0-9,]+(?:\.[0-9]{2})?)\s*raised/i,
+            /\$([0-9,]+(?:\.[0-9]{2})?)\s*Raised/,
+            /raised[\s:]*\$([0-9,]+(?:\.[0-9]{2})?)/i,
+            /([0-9,]+(?:\.[0-9]{2})?)\s*raised/i,
+            /total[\s:]*\$([0-9,]+(?:\.[0-9]{2})?)/i
         ];
         
         const goalPatterns = [
-            /\$([0-9,]+)\s*goal/i,
-            /\$([0-9,]+)\s*Goal/,
-            /goal[\s:]*\$([0-9,]+)/i,
-            /target[\s:]*\$([0-9,]+)/i
+            /\$([0-9,]+(?:\.[0-9]{2})?)\s*goal/i,
+            /\$([0-9,]+(?:\.[0-9]{2})?)\s*Goal/,
+            /goal[\s:]*\$([0-9,]+(?:\.[0-9]{2})?)/i,
+            /target[\s:]*\$([0-9,]+(?:\.[0-9]{2})?)/i
         ];
         
         // Try each pattern for raised amount
@@ -136,7 +136,7 @@ async function fetchDonorboxData() {
                 const element = $(selector);
                 if (element.length > 0) {
                     const text = element.text().trim();
-                    const match = text.match(/\$?([0-9,]+)/);
+                    const match = text.match(/\$?([0-9,]+(?:\.[0-9]{2})?)/);
                     if (match) {
                         const amount = parseFloat(match[1].replace(/,/g, ''));
                         if (!isNaN(amount) && amount > 0) {
@@ -155,8 +155,8 @@ async function fetchDonorboxData() {
                 const scriptContent = $(elem).html();
                 if (scriptContent) {
                     // Look for JSON data in scripts
-                    const raisedMatch = scriptContent.match(/"raised_amount["\s:]*([0-9,]+)/i);
-                    const goalMatch = scriptContent.match(/"goal_amount["\s:]*([0-9,]+)/i);
+                    const raisedMatch = scriptContent.match(/"raised_amount["\s:]*([0-9,]+(?:\.[0-9]{2})?)/i);
+                    const goalMatch = scriptContent.match(/"goal_amount["\s:]*([0-9,]+(?:\.[0-9]{2})?)/i);
                     
                     if (raisedMatch) {
                         const amount = parseFloat(raisedMatch[1].replace(/,/g, ''));
@@ -182,7 +182,7 @@ async function fetchDonorboxData() {
             const dollarAmounts = [];
             $('*').each((i, elem) => {
                 const text = $(elem).text().trim();
-                const match = text.match(/^\$([0-9,]+)$/);
+                const match = text.match(/^\$([0-9,]+(?:\.[0-9]{2})?)$/);
                 if (match) {
                     const amount = parseFloat(match[1].replace(/,/g, ''));
                     if (!isNaN(amount) && amount > 0 && amount < 100000) {
