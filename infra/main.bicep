@@ -47,15 +47,15 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: 'plan-${resourcePrefix}-${resourceToken}'
   location: location
   sku: {
-    name: 'B1'
-    tier: 'Basic'
-    size: 'B1'
-    family: 'B'
+    name: 'F1'
+    tier: 'Free'
+    size: 'F1'
+    family: 'F'
     capacity: 1
   }
-  kind: 'linux'
+  kind: 'app'
   properties: {
-    reserved: true
+    reserved: false
   }
 }
 
@@ -81,11 +81,10 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
   }
   properties: {
     serverFarmId: appServicePlan.id
-    reserved: true
+    reserved: false
     siteConfig: {
-      linuxFxVersion: 'NODE|18-lts'
+      nodeVersion: '18-lts'
       appCommandLine: 'npm start'
-      alwaysOn: true
       httpLoggingEnabled: true
       detailedErrorLoggingEnabled: true
       requestTracingEnabled: true
